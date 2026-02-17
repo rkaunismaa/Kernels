@@ -27,6 +27,17 @@ Deep dive into kernel fusion, the technique that actually delivers real speedups
 - **Scaling analysis** — how speedups change with token count, revealing the launch overhead vs. memory bandwidth tradeoff
 - **Memory bandwidth deep dive** — quantifying bytes saved per fusion and achieved vs. theoretical bandwidth
 
+### [demo_4090_write_your_own.ipynb](demo_4090_write_your_own.ipynb) — Write Your Own
+
+Write GPU kernels from scratch with Triton, compare with `torch.compile`, and explore data types and memory.
+
+- **Writing Triton kernels** — build a fused SiLU+multiply kernel and an RMSNorm kernel from scratch in Python
+- **Four-way race** — PyTorch eager vs. custom Triton vs. Hub kernel vs. `torch.compile`, showing they all converge at the memory bandwidth ceiling
+- **`torch.compile`** — PyTorch's built-in compiler that auto-fuses operations with zero manual effort
+- **Data types** — fp32 vs. fp16 vs. bf16 performance (2x speedup from halving data size) and precision tradeoffs
+- **Memory footprint** — how fusion reduces peak VRAM, not just execution time
+- **Decision framework** — when to use each approach (compile, Hub kernels, custom Triton, CUDA C++)
+
 ## Quick Start
 
 ```bash
@@ -71,4 +82,7 @@ kernels skills add --claude
 - **Fused RMSNorm + residual**: ~2x faster at 8K+ tokens
 - **Standalone RMSNorm replacement**: slower — PyTorch's native kernel is already well-optimized on the 4090
 - **End-to-end MLP block**: ~2% faster after patching (linear projections dominate 95% of runtime)
+- **Custom Triton kernel**: matches Hub kernel performance (~1.7x) in ~15 lines of code
+- **`torch.compile`**: matches custom kernels with zero effort (but slow first call)
+- **fp16/bf16 vs fp32**: 2x speedup and half the memory — the single biggest optimization
 - **Takeaway**: fusion matters more than drop-in replacement; speedups are size-dependent; these kernels show larger gains on datacenter GPUs (H100/A100)
